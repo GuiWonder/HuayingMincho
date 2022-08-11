@@ -1,3 +1,4 @@
+**繁體中文** [简体中文](README-SC.md#Huaying-Mincho-华英明朝)
 # Huaying Mincho 華英明朝
 **Huaying Mincho 華英明朝**是一套擁有傳承字形、舊字形風格的中文字型。華英明朝共提供 3 種字形風格，並帶有符合 [IVD_Charts_Moji_Joho](https://unicode.org/ivd/data/2017-12-12/IVD_Charts_Moji_Joho.pdf) 標準的異體選擇器。
 ## 版本說明
