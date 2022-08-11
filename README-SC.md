@@ -1,5 +1,5 @@
-[繁體中文](https://github.com/GuiWonder/HuayingMincho#Huaying-Mincho-華英明朝) **简体中文**
-# Huaying Mincho 华英明朝
+[繁體中文](https://github.com/GuiWonder/HuayingMincho#Huaying-Mincho-華英明朝-华英明朝) **简体中文**
+# Huaying Mincho 华英明朝 華英明朝
 **Huaying Mincho 华英明朝**是一套拥有传承字形、旧字形风格的中文字体。华英明朝共提供 3 种字形风格，并带有符合 [IVD_Charts_Moji_Joho](https://unicode.org/ivd/data/2017-12-12/IVD_Charts_Moji_Joho.pdf) 标准的异体选择器。
 ## 版本说明
 #### 1. 华英明朝 旧印体
