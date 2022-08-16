@@ -20,11 +20,12 @@
 * 可透過異體選擇符輸出 [IVD_Charts_Moji_Joho](https://unicode.org/ivd/data/2017-12-12/IVD_Charts_Moji_Joho.pdf) 中的字形。  
 ![image](./pic/hy0003.png)  
 ## 下載字型
-可從 [Releases](https://github.com/GuiWonder/HuayingMincho/releases) 頁面下載字型。
+1. 可從本站 [Releases](https://github.com/GuiWonder/HuayingMincho/releases) 頁面下載字型。
+2. 可從[騰訊微雲](https://share.weiyun.com/VEoOc5xK)下載 HuayingMincho 系列字型。
 ## 授權
 華英明朝字型是基於 [IPAmj明朝](https://moji.or.jp/mojikiban/font/)的衍生字型，遵循 IPA Font License Agreement v1.0 協議。
 ## 生成字型
-安裝 [FontForge](https://github.com/fontforge/fontforge)，執行`fontforge -script huayingmincho.py`。
+安裝 [FontForge](https://github.com/fontforge/fontforge)，執行 `fontforge -script huayingmincho.py`。
 ## 相關資料
 * [FontForge](https://github.com/fontforge/fontforge)
 * [IPAmj明朝](https://moji.or.jp/mojikiban/font/)
@@ -32,4 +33,4 @@
 * [GlyphWiki](https://glyphwiki.org/)
 * [一點明體](https://github.com/ichitenfont/I.Ming)
 ## 關於作者
-- **Email：** chunfengfly@gmail.com
+- **Email：** chunfengfly@outlook.com
