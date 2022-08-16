@@ -13,7 +13,6 @@
 ## 预览
 * 传承体预览  
 ![image](./pic/hy0001.png)  
-
 * 版本对比  
 ![image](./pic/hy0002.png)  
 * 繁体版预览（文本为简体）  
@@ -21,11 +20,12 @@
 * 可通过异体选择符输出 [IVD_Charts_Moji_Joho](https://unicode.org/ivd/data/2017-12-12/IVD_Charts_Moji_Joho.pdf) 中的字形。  
 ![image](./pic/hy0003.png)  
 ## 下载字体
-可从 [Releases](https://github.com/GuiWonder/HuayingMincho/releases) 页面下载字体。
+1. 可从本站 [Releases](https://github.com/GuiWonder/HuayingMincho/releases) 页面下载字体。
+2. 可从[腾讯微云](https://share.weiyun.com/VEoOc5xK)下载 HuayingMincho 系列字体。
 ## 授權
 华英明朝字体是基于 [IPAmj明朝](https://moji.or.jp/mojikiban/font/)的衍生字体，遵循 IPA Font License Agreement v1.0 协议。
 ## 生成字体
-安装 [FontForge](https://github.com/fontforge/fontforge)，运行`fontforge -script huayingmincho.py`。
+安装 [FontForge](https://github.com/fontforge/fontforge)，运行 `fontforge -script huayingmincho.py`。
 ## 相关资料
 * [FontForge](https://github.com/fontforge/fontforge)
 * [IPAmj明朝](https://moji.or.jp/mojikiban/font/)
@@ -33,4 +33,4 @@
 * [GlyphWiki](https://glyphwiki.org/)
 * [一点明体](https://github.com/ichitenfont/I.Ming)
 ## 关于作者
-- **Email：** chunfengfly@gmail.com
+- **Email：** chunfengfly@outlook.com
