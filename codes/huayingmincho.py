@@ -134,7 +134,7 @@ if len(sys.argv)>3 and sys.argv[3] in ('1', '2', '3'):
 	style=sys.argv[3]
 else:
 	while style not in ('1', '2', '3'):
-		style=input('请选择字形变体参考对象：\n\t1.旧印刷体，新细明体\n\t2.传承旧字综合\n\t3.康熙字典\n')
+		style=input('请选择字形变体参考对象：\n\t1.旧印刷体，新细明体\n\t2.传承旧字\n\t3.康熙字典\n')
 if len(sys.argv)>4 and sys.argv[3].lower() in ('y', 'n'):
 	rmun=sys.argv[3].lower()
 #else:
@@ -154,7 +154,7 @@ vtb=list()
 exch=set()
 mulch=list()
 torm=set()
-with open('mulcodechar.txt', 'r', encoding='utf-8') as f:
+with open(os.path.join(pydir, 'mulcodechar.txt'), 'r', encoding='utf-8') as f:
 	for line in f.readlines():
 		line=line.strip()
 		if line.startswith('#'):
@@ -162,7 +162,7 @@ with open('mulcodechar.txt', 'r', encoding='utf-8') as f:
 		a=line.split('\t')
 		exch.add(a[0])
 		mulch.append((a[0], a[1]))
-with open('mulcodevar.txt', 'r', encoding='utf-8') as f:
+with open(os.path.join(pydir, 'mulcodevar.txt'), 'r', encoding='utf-8') as f:
 	for line in f.readlines():
 		line=line.strip()
 		if line.startswith('#'):
@@ -173,7 +173,7 @@ with open('mulcodevar.txt', 'r', encoding='utf-8') as f:
 		tv[ord(a[1])]=int(a[3].split(' ')[1].strip(), 16)
 		mvar[ord(a[1])]=(int(a[2].split(' ')[1].strip(), 16), ord(a[0]))
 		exch.add(a[0])
-with open('uvs-get-MARK-0'+style+'.txt', 'r', encoding='utf-8') as f:
+with open(os.path.join(pydir, 'uvs-get-MARK-0'+style+'.txt'), 'r', encoding='utf-8') as f:
 	for line in f.readlines():
 		line=line.strip()
 		if line.startswith('#'):
