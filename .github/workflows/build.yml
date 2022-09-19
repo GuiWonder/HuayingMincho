@@ -1,0 +1,59 @@
+
+name: Build
+
+on:
+  workflow_dispatch
+  #push:
+   # branches: [ "main" ]
+
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Begin
+      run: |
+        sudo apt install fontforge
+        python3 ./build.py
+    - name: Upload release
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "test-release-AA"
+        prerelease: true
+        title: Daily Test
+        files: |
+            HuayingMinchoOld.ttf
+            HuayingMinchoClassic.ttf
+            HuayingMinchoODict.ttf
+            HuayingMinchoT.ttf
+            HuayingMincho.ttc
+            
+    - uses: actions/upload-artifact@v2
+      with:
+        name: HuayingMinchoOld
+        path: HuayingMinchoOld.ttf
+    - uses: actions/upload-artifact@v2
+      with:
+        name: HuayingMinchoClassic
+        path: HuayingMinchoClassic.ttf
+    - uses: actions/upload-artifact@v2
+      with:
+        name: HuayingMinchoODict
+        path: HuayingMinchoODict.ttf
+    - uses: actions/upload-artifact@v2
+      with:
+        name: HuayingMincho
+        path: HuayingMincho.ttc
+    - uses: actions/upload-artifact@v2
+      with:
+        name: HuayingMinchoT
+        path: HuayingMinchoT.ttf
+
