@@ -22,7 +22,7 @@
 ## 下载字体
 1. 可从本站 [Releases](https://github.com/GuiWonder/HuayingMincho/releases) 页面下载字体。
 2. 可从[腾讯微云](https://share.weiyun.com/VEoOc5xK)下载 HuayingMincho 系列字体。
-## 授權
+## 授权
 华英明朝字体是基于 [IPAmj明朝](https://moji.or.jp/mojikiban/font/)的衍生字体，遵循 IPA Font License Agreement v1.0 协议。
 ## 生成字体
 安装 [FontForge](https://github.com/fontforge/fontforge)，运行 `fontforge -script huayingmincho.py`。
