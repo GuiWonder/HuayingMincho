@@ -1,21 +1,12 @@
-import os, json, fontforge, subprocess, platform, sys
+import os, sys, json, fontforge
 
 pydir = os.path.abspath(os.path.dirname(__file__))
 
-fontver='1.002'
+fontver='1.003'
 fontname='HuayingMincho'
 tcname='華英明朝'
 scname='华英明朝'
 vendorURL='https://github.com/GuiWonder/HuayingMincho'
-
-def ckfile(f):
-	f=f.strip()
-	if not os.path.isfile(f):
-		if os.path.isfile(f.strip('"')):
-			return f.strip('"')
-		elif os.path.isfile(f.strip("'")):
-			return f.strip("'")
-	return f
 
 def getallcodesname(font, code_glyph, glyph_codes):
 	code_glyph.clear()
@@ -34,10 +25,9 @@ def getallcodesname(font, code_glyph, glyph_codes):
 def addvariants():
 	with open(os.path.join(pydir, 'datas/Variants.txt'), 'r', encoding = 'utf-8') as f:
 		for line in f.readlines():
-			line = line.strip()
-			if line.startswith('#') or '\t' not in line:
-				continue
-			vari = line.strip().split('\t')
+			litm=line.split('#')[0].strip()
+			if '\t' not in litm: continue
+			vari = litm.split('\t')
 			codein = 0
 			for ch1 in vari:
 				chcode = ord(ch1)
@@ -52,25 +42,21 @@ def addvariants():
 
 def addglyuni(gly, uni):
 	if uni in code_glyph:
-		if code_glyph[uni]==gly:
-			return
+		if code_glyph[uni]==gly: return
 		rmcode(code_glyph[uni], uni)
 	adduni(gly, uni)
 
 def unimvtogly(uni, gly):
-	if code_glyph[uni]==gly:
-		return
+	if code_glyph[uni]==gly: return
 	rmcode(code_glyph[uni], uni)
 	adduni(gly, uni)
 
 def mvcodetocode(uni, unito):
-	if unito not in code_glyph:
-		return
+	if unito not in code_glyph: return
 	gto=code_glyph[unito]
 	if uni in code_glyph:
 		gf=code_glyph[uni]
-		if gf==gto:
-			return
+		if gf==gto: return
 		rmcode(gf, uni)
 	adduni(gto, uni)
 
@@ -118,7 +104,11 @@ def adduni(gly, uni):
 		font[gly].altuni = tuple(lu)
 
 def stlookups():
-	font.addLookup('stchar', 'gsub_single', (), (("ccmp",(("hani",("dflt")),)),))
+	lantgs=getlklan()
+	if ('hani', ('dflt',)) not in lantgs:
+		print('Add hani lantag')
+		lantgs.append(('hani', ('dflt',)))
+	font.addLookup('stchar', 'gsub_single', (), (("ccmp", tuple(lantgs)), ))
 	font.addLookup('stchar1', 'gsub_single', (), ())
 	font.addLookup('stchar2', 'gsub_single', (), ())
 	font.addLookup('stchar3', 'gsub_single', (), ())
@@ -128,33 +118,28 @@ def stlookups():
 	font.addLookupSubtable('stchar2', 'sttab2')
 	font.addLookupSubtable('stchar3', 'sttab3')
 	font.addLookupSubtable('stchar4', 'sttab4')
-	with open(os.path.join(pydir, 'stoneo.dt'), 'r', encoding = 'utf-8') as f:
+	with open(os.path.join(pydir, 'datas/stoneo.dt'), 'r', encoding = 'utf-8') as f:
 		for line in f.readlines():
-			line = line.strip()
-			if line.startswith('#') or '-' not in line:
-				continue
-			s, t = line.strip().split(' ')[0].split('-')
-			s = s.strip()
-			t = t.strip()
+			litm=line.split('#')[0].strip()
+			if '-' not in litm: continue
+			s, t=litm.split(' ')[0].split('-')
+			s, t=s.strip(), t.strip()
 			if s and t and s != t and ord(t) in code_glyph and ord(s) in code_glyph:
 				gntc = code_glyph[ord(t)]
 				gnsc = code_glyph[ord(s)]
 				if gntc != gnsc:
 					font[gnsc].addPosSub('sttab', gntc)
-	font.addLookup('stdict', 'gsub_contextchain', (), (("ccmp",(("hani",("dflt")),)),))
-	with open(os.path.join(pydir, 'stonem.dt'),'r',encoding = 'utf-8') as f:
-		sig1=set()
-		sig2=set()
-		sig3=set()
-		sig4=set()
+	font.addLookup('stdict', 'gsub_contextchain', (), (("ccmp", tuple(lantgs)), ))
+	with open(os.path.join(pydir, 'datas/stonem.dt'),'r',encoding = 'utf-8') as f:
+		sig1, sig2, sig3, sig4=set(), set(), set(), set()
 		ltc=dict()
 		i=1
 		linesrv=f.readlines()
 		linesrv.reverse()
 		for line in linesrv:
-			if line.strip().startswith('#') or '-' not in line:
-				continue
-			ls=line.strip().split(' ')
+			litm=line.split('#')[0].strip()
+			if '-' not in litm: continue
+			ls=litm.strip().split(' ')
 			s, t=ls[0].split('-')
 			dics=ls[1:]
 			sg=code_glyph[ord(s)]
@@ -193,7 +178,7 @@ def stlookups():
 					lw1=f'[{" ".join(lw)}]'
 					mt.append(lw1)
 				else:
-					break
+					raise
 			if not (s and t) or chat<0:
 				raise RuntimeError(line)
 			sb=str()
@@ -219,31 +204,62 @@ def stname():
 	sfntnames2=list()
 	for nt in sfntnames:
 		nn=list(nt)
-		nn[2]=nn[2].replace('Classic', 'T').replace('Old', 'T').replace('ODict', 'T').replace('华英明朝', '華英明朝').replace('传承体', '繁體').replace('傳承體', '繁體').replace('旧印体', '繁體').replace('舊印體', '繁體').replace('旧典体', '繁體').replace('舊典體', '繁體')
+		nn[2]=nn[2].replace('Classic', 'T').replace('Old', 'T').replace('ODict', 'T').replace(scname, tcname).replace('传承体', '繁體').replace('傳承體', '繁體').replace('旧印体', '繁體').replace('舊印體', '繁體').replace('旧典体', '繁體').replace('舊典體', '繁體')
 		nt=tuple(nn)
 		sfntnames2.append(nt)
 	font.sfnt_names=tuple(sfntnames2)
 
+def fontinf():
+	font.os2_vendor='GWF '
+	font.sfntRevision = float(fontver)
+	nameen, nametc, namesc=str(), str(), str()
+	if style=='1':
+		nameen=fontname+' Old'
+		nametc=tcname+' 舊印體'
+		namesc=scname+' 旧印体'
+	elif style=='2':
+		nameen=fontname+' Classic'
+		nametc=tcname+' 傳承體'
+		namesc=scname+' 传承体'
+	elif style=='3':
+		nameen=fontname+' ODict'
+		nametc=tcname+' 舊典體'
+		namesc=scname+' 旧典体'
+
+	newname=list()
+	newname+=[('English (US)', 'Family', nameen), ('English (US)', 'Fullname', nameen)]
+	for lang in ('English (US)', 'Chinese (Taiwan)', 'Chinese (Hong Kong)', 'Chinese (Macau)', 'Chinese (PRC)', 'Chinese (Singapore)'):
+		newname+=[
+			(lang, 'Copyright', 'Copyright(c) '+fontname+', 2022-2023. You must accept "https://opensource.org/licenses/IPA/" to use this product.'), 
+			(lang, 'SubFamily', 'Regular'), 
+			(lang, 'UniqueID', nameen+' Version '+fontver), 
+			(lang, 'Version', 'Version '+fontver), 
+			(lang, 'PostScriptName', nameen.replace(' ', '')), 
+			(lang, 'License', 'https://opensource.org/licenses/IPA/'), 
+			(lang, 'License URL', 'https://opensource.org/licenses/IPA/'), 
+			(lang, 'Vendor URL', vendorURL), 
+		]
+	for lang in ('Chinese (Taiwan)', 'Chinese (Hong Kong)', 'Chinese (Macau)'):
+		newname+=[(lang, 'Family', nametc), (lang, 'Fullname', nametc)]
+	for lang in ('Chinese (PRC)', 'Chinese (Singapore)'):
+		newname+=[(lang, 'Family', namesc), (lang, 'Fullname', namesc)]
+	font.sfnt_names=tuple(newname)
+
+def getlklan():
+	lans=list()
+	for lk in font.gsub_lookups:
+		for lan in font.getLookupInfo(lk)[2][0][1]:
+			if lan not in lans: lans.append(lan)
+	return lans
+
 print('====Start Build HuayingMincho Fonts====\n')
-inf=str()
-outf=str()
-style=str()
-if len(sys.argv)>2 and os.path.isfile(sys.argv[1]):
+inf, outf, style=str(), str(), str()
+if len(sys.argv)>3 and sys.argv[3] in ('1', '2', '3'):
 	inf=sys.argv[1]
 	outf=sys.argv[2]
-else:
-	while not os.path.isfile(inf):
-		inf=input('请输入字体文件路径（或拖入文件）：\n')
-		inf=ckfile(inf)
-		if not os.path.isfile(inf):
-			print('文件不存在，请重新选择！\n')
-	while not outf.strip():
-		outf=input('请输入输出文件：\n')
-if len(sys.argv)>3 and sys.argv[3] in ('1', '2', '3'):
 	style=sys.argv[3]
 else:
-	while style not in ('1', '2', '3'):
-		style=input('请选择字形变体参考对象：\n\t1.旧印刷体，新细明体\n\t2.传承旧字\n\t3.康熙字典\n')
+	sys.exit()
 
 print('Loading font...')
 font = fontforge.open(inf)
@@ -257,32 +273,27 @@ mvar=dict()
 vtb=list()
 exch=set()
 mulch=list()
-with open(os.path.join(pydir, 'mulcodechar.txt'), 'r', encoding='utf-8') as f:
+with open(os.path.join(pydir, 'datas/mulcodechar.txt'), 'r', encoding='utf-8') as f:
 	for line in f.readlines():
-		line=line.strip()
-		if line.startswith('#'):
-			continue
-		a=line.split('\t')
+		litm=line.split('#')[0].strip()
+		if '\t' not in litm: continue
+		a=litm.split('\t')
 		exch.add(a[0])
 		mulch.append((a[0], a[1]))
-with open(os.path.join(pydir, 'mulcodevar.txt'), 'r', encoding='utf-8') as f:
+with open(os.path.join(pydir, 'datas/mulcodevar.txt'), 'r', encoding='utf-8') as f:
 	for line in f.readlines():
-		line=line.strip()
-		if line.startswith('#'):
-			continue
-		a=line.split('\t')
-		if style=='3' and a[0]=='即':
-			continue
+		litm=line.split('#')[0].strip()
+		if '\t' not in litm: continue
+		a=litm.split('\t')
+		if style=='3' and a[0]=='即': continue
 		tv[ord(a[1])]=int(a[3].split(' ')[1].strip(), 16)
 		mvar[ord(a[1])]=(int(a[2].split(' ')[1].strip(), 16), ord(a[0]))
 		exch.add(a[0])
-with open(os.path.join(pydir, 'uvs-get-MARK-0'+style+'.txt'), 'r', encoding='utf-8') as f:
+with open(os.path.join(pydir, 'datas/uvs-get-MARK-0'+style+'.txt'), 'r', encoding='utf-8') as f:
 	for line in f.readlines():
-		line=line.strip()
-		if line.startswith('#'):
-			continue
-		if line.endswith('X'):
-			a=line.split(' ')
+		litm=line.split('#')[0].strip()
+		if litm.endswith('X'):
+			a=litm.split(' ')
 			if a[0] not in exch:
 				tv[ord(a[0])]=int(a[3].strip('X').strip(), 16)
 
@@ -314,51 +325,13 @@ print('Checking variants...')
 addvariants()
 
 print('Setting font info...')
-font.os2_vendor='GWF '
-sfntnames=list(font.sfnt_names)
-for jn in sfntnames:
-	if jn[0]=='Japanese':
-		for lan in ['Chinese (Taiwan)', 'Chinese (PRC)', 'Chinese (Hong Kong)', 'Chinese (Macau)']:
-			n1=list(jn)
-			n1[0]=lan
-			sfntnames.append(tuple(n1))
-sfntnames2=list()
-if style=='1':
-	fontname+=' Old'
-	tcname+=' 舊印體'
-	scname+=' 旧印体'
-elif style=='2':
-	fontname+=' Classic'
-	tcname+=' 傳承體'
-	scname+=' 传承体'
-elif style=='3':
-	fontname+=' ODict'
-	tcname+=' 舊典體'
-	scname+=' 旧典体'
-for nt in sfntnames:
-	nn=list(nt)
-	#if nn[0]=='Japanese':
-	#	continue
-	nn[2]=nn[2].replace('IPAmjMincho', fontname).replace('Version 006.01', 'Version '+fontver)
-	if nn[0]=='Chinese (PRC)':
-		nn[2]=nn[2].replace('IPAmj明朝', scname)
-	else:
-		nn[2]=nn[2].replace('IPAmj明朝', tcname)
-	if nn[1]=='PostScriptName':
-		nn[2]=nn[2].replace(' ', '')
-	if nn[1]=='Copyright':
-		nn[2]='Copyright(c) HuayingMincho, 2022. You must accept "https://opensource.org/licenses/IPA/" to use this product.'
-	nt=tuple(nn)
-	sfntnames2.append(nt)
-sfntnames2.append(('English (US)', 'Vendor URL', vendorURL))
-font.sfnt_names=tuple(sfntnames2)
-font.sfntRevision = float(fontver)
-del tv
+fontinf()
 print('Generating font(s)...')
+gflags=('opentype', 'omit-instructions',)
 if len(sys.argv)>4 and sys.argv[4].lower()=='t' and os.path.isdir(outf):
-	defn=['HuayingMinchoOld', 'HuayingMinchoClassic', 'HuayingMinchoODict']
+	defn=[fontname+'Old', fontname+'Classic', fontname+'ODict']
 	oft=os.path.join(outf, defn[int(style)-1]+'.ttf')
-	oftst=os.path.join(outf, 'HuayingMinchoT.ttf')
+	oftst=os.path.join(outf, fontname+'T.ttf')
 	font.generate(oft)
 	print('Convert to TC...')
 	stlookups()
