@@ -22,13 +22,6 @@ def getfrdv(font, ch, iv):
 			for alt in gls.altuni:
 				if alt[0]==ord(ch) and alt[1]==iv:
 					return gls.glyphname
-				
-				#if alt[1]>0:
-				#	if alt[0] in mvar and alt[1]==mvar[alt[0]][0]:
-				#		vtb.append((gls.glyphname, mvar[alt[0]][1]))
-				#	if alt[0] in tv and tv[alt[0]]==alt[1]:
-				#		ltb.append((gls.glyphname, alt[0]))
-
 
 def mergeft(font, fin2, rplc=False):
 	print(f'Loading {fin2}...')
@@ -55,7 +48,6 @@ def mergeft(font, fin2, rplc=False):
 			font[cd1].altuni = code_codes2[cd1]
 	for ch in ivd.keys():
 		glnm=getfrdv(font, ch, ivd[ch])
-		#print(glnm)
 		font2.selection.select(ord(ch))
 		font2.copy()
 		font.selection.select(glnm)

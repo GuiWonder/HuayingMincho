@@ -2,7 +2,7 @@ import os, sys, json, fontforge
 
 pydir = os.path.abspath(os.path.dirname(__file__))
 
-fontver='1.004'
+fontver='1.005'
 fontname='HuayingMincho'
 tcname='華英明朝'
 scname='华英明朝'
