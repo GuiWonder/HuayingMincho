@@ -5,6 +5,8 @@ def getallcodesname(thfont):
 	c_g = dict()
 	g_c=dict()
 	for gls in thfont.glyphs():
+		if gls.glyphname in ('.notdef', '.null', 'nonmarkingreturn'):
+			continue
 		g_c[gls.glyphname]=list()
 		if gls.unicode > -1:
 			c_g[gls.unicode]=gls.glyphname
