@@ -2,7 +2,7 @@ import os, sys, json, fontforge
 
 pydir = os.path.abspath(os.path.dirname(__file__))
 
-fontver='1.009'
+fontver='1.010'
 fontname='HuayingMincho'
 tcname='華英明朝'
 scname='华英明朝'
@@ -230,7 +230,7 @@ def fontinf():
 	newname+=[('English (US)', 'Family', nameen), ('English (US)', 'Fullname', nameen)]
 	for lang in ('English (US)', 'Chinese (Taiwan)', 'Chinese (Hong Kong)', 'Chinese (Macau)', 'Chinese (PRC)', 'Chinese (Singapore)'):
 		newname+=[
-			(lang, 'Copyright', 'Copyright(c) '+fontname+', 2022-2023. You must accept "https://opensource.org/licenses/IPA/" to use this product.'), 
+			(lang, 'Copyright', 'Copyright(c) '+fontname+', 2022-2024. You must accept "https://opensource.org/licenses/IPA/" to use this product.'), 
 			(lang, 'SubFamily', 'Regular'), 
 			(lang, 'UniqueID', nameen+' Version '+fontver), 
 			(lang, 'Version', 'Version '+fontver), 

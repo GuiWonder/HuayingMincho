@@ -18,7 +18,7 @@
 * 繁体版预览（文本为简体）  
 ![image](./pic/hy0001.jpg)  
 * 可通过异体选择符输出 [IVD_Charts_Moji_Joho](https://unicode.org/ivd/data/2017-12-12/IVD_Charts_Moji_Joho.pdf) 中的字形。  
-![image](./pic/hy0003.png)  
+
 ## 下载字体
 1. 可从本站 [Releases](../../releases) 页面下载字体。
 2. 可从[腾讯微云](https://share.weiyun.com/VEoOc5xK)下载 HuayingMincho 系列字体。
