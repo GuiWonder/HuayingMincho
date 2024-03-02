@@ -9,7 +9,7 @@ fontforge -script ./codes/huayingmincho.py ./temp/merge.ttf ./HuayingMinchoOld.t
 #fontforge -script ./codes/huayingmincho.py ./temp/merge.ttf ./HuayingMinchoClassic.ttf 2
 fontforge -script ./codes/huayingmincho.py ./temp/merge.ttf ./ 2 t
 fontforge -script ./codes/huayingmincho.py ./temp/merge.ttf ./HuayingMinchoODict.ttf 3
-fontforge -script ./codes/otf2otc.py -o ./HuayingMincho.ttc ./HuayingMinchoOld.ttf ./HuayingMinchoClassic.ttf ./HuayingMinchoODict.ttf ./HuayingMinchoT.ttf
+
 python3 ./codes/otf2otc.py -o ./HuayingMincho.ttc ./HuayingMinchoOld.ttf ./HuayingMinchoClassic.ttf ./HuayingMinchoODict.ttf ./HuayingMinchoT.ttf
 7z a AllFonts.7z *.tt* LICENSE.txt -mx=9 -mfb=256 -md=256m
 
