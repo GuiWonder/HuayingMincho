@@ -2,7 +2,7 @@ import os, sys, json, fontforge
 
 pydir = os.path.abspath(os.path.dirname(__file__))
 
-fontver='1.012'
+fontver='1.013'
 fontname='HuayingMincho'
 tcname='華英明朝'
 scname='华英明朝'
@@ -118,17 +118,21 @@ def stlookups():
 	font.addLookupSubtable('stchar2', 'sttab2')
 	font.addLookupSubtable('stchar3', 'sttab3')
 	font.addLookupSubtable('stchar4', 'sttab4')
+	sgdic=dict()
 	with open(os.path.join(pydir, 'datas/stoneo.dt'), 'r', encoding = 'utf-8') as f:
 		for line in f.readlines():
 			litm=line.split('#')[0].strip()
 			if '-' not in litm: continue
 			s, t=litm.split(' ')[0].split('-')
 			s, t=s.strip(), t.strip()
-			if s and t and s != t and ord(t) in code_glyph and ord(s) in code_glyph:
-				gntc = code_glyph[ord(t)]
-				gnsc = code_glyph[ord(s)]
-				if gntc != gnsc:
-					font[gnsc].addPosSub('sttab', gntc)
+			if s and t and s != t and ord(t) in code_glyph and ord(s) in code_glyph: sgdic[s]=t
+	for s, t in list(sgdic.items()):
+		if t in sgdic: sgdic[s]=sgdic[t]
+	for chs in sgdic.keys():
+			gnsc = code_glyph[ord(chs)]
+			gntc = code_glyph[ord(sgdic[chs])]
+			if gntc != gnsc:
+				font[gnsc].addPosSub('sttab', gntc)
 	font.addLookup('stdict', 'gsub_contextchain', (), (("ccmp", tuple(lantgs)), ))
 	with open(os.path.join(pydir, 'datas/stonem.dt'),'r',encoding = 'utf-8') as f:
 		sig1, sig2, sig3, sig4=set(), set(), set(), set()
@@ -276,10 +280,10 @@ mulch=list()
 with open(os.path.join(pydir, 'datas/mulcodechar.txt'), 'r', encoding='utf-8') as f:
 	for line in f.readlines():
 		litm=line.split('#')[0].strip()
-		if '\t' not in litm: continue
-		a=litm.split('\t')
-		exch.add(a[0])
-		mulch.append((a[0], a[1]))
+		if '-' not in litm: continue
+		a=litm.split(' ')[0].split('-')
+		exch.add(a[0].strip())
+		mulch.append((a[0].strip(), a[1].strip()))
 with open(os.path.join(pydir, 'datas/mulcodevar.txt'), 'r', encoding='utf-8') as f:
 	for line in f.readlines():
 		litm=line.split('#')[0].strip()
@@ -316,10 +320,10 @@ for v1 in vtb:
 
 for t1 in ltb:
 	unimvtogly(t1[1], t1[0])
-
-print('Checking multicode...')
-for chd in mulch:
-	mvcodetocode(ord(chd[0]), ord(chd[1]))
+if style=='2':
+	print('Checking multicode...')
+	for chd in mulch:
+		mvcodetocode(ord(chd[0]), ord(chd[1]))
 
 print('Checking variants...')
 addvariants()
