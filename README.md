@@ -29,7 +29,6 @@
 ## 鳴謝
 * [IPAmj明朝](https://moji.or.jp/mojikiban/font/)
 * [霞鶩新致宋](https://github.com/lxgw/LxgwNeoZhiSong)
-* [FontForge](https://github.com/fontforge/fontforge)
 * [FontTools](https://github.com/fonttools/fonttools)
 * [AFDKO](https://github.com/adobe-type-tools/afdko/)
 ## 相關資料

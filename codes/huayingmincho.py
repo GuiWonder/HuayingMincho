@@ -1,260 +1,284 @@
-import os, sys, json, fontforge
+import os, sys, json
+from fontTools.ttLib import TTFont, newTable
+from fontTools.ttLib.tables import otTables
 
 pydir = os.path.abspath(os.path.dirname(__file__))
 
-fontver='1.015'
+fontver='1.016'
 fontname='HuayingMincho'
 tcname='華英明朝'
 scname='华英明朝'
+janame='華英明朝'
 vendorURL='https://github.com/GuiWonder/HuayingMincho'
+VendID='GUIF'
+Copyright='Copyright(c) '+fontname+', 2022-2025. You must accept "https://opensource.org/licenses/IPA/" to use this product.'
 
-def getallcodesname(font, code_glyph, glyph_codes):
-	code_glyph.clear()
-	glyph_codes.clear()
-	for gls in font.glyphs():
-		glyph_codes[gls.glyphname]=list()
-		if gls.unicode > -1:
-			code_glyph[gls.unicode]=gls.glyphname
-			glyph_codes[gls.glyphname].append(gls.unicode)
-		if gls.altuni != None:
-			for uni in gls.altuni:
-				if uni[1] <= 0:
-					code_glyph[uni[0]] = gls.glyphname
-					glyph_codes[gls.glyphname].append(uni[0])
-
-def addvariants():
-	with open(os.path.join(pydir, 'datas/Variants.txt'), 'r', encoding = 'utf-8') as f:
-		for line in f.readlines():
-			litm=line.split('#')[0].strip()
-			if '\t' not in litm: continue
-			vari = litm.split('\t')
-			codein = 0
-			for ch1 in vari:
-				chcode = ord(ch1)
-				if chcode in code_glyph:
-					codein = chcode
-					break
-			if codein != 0:
-				for ch1 in vari:
-					chcode = ord(ch1)
-					if chcode not in code_glyph:
-						mvcodetocode(chcode, codein)
-
-def addglyuni(gly, uni):
-	if uni in code_glyph:
-		if code_glyph[uni]==gly: return
-		rmcode(code_glyph[uni], uni)
-	adduni(gly, uni)
-
-def unimvtogly(uni, gly):
-	if code_glyph[uni]==gly: return
-	rmcode(code_glyph[uni], uni)
-	adduni(gly, uni)
-
-def mvcodetocode(uni, unito):
-	if unito not in code_glyph: return
-	gto=code_glyph[unito]
-	if uni in code_glyph:
-		gf=code_glyph[uni]
-		if gf==gto: return
-		rmcode(gf, uni)
-	adduni(gto, uni)
-
-def rmcode(gly, uni):
-	glyph_codes[gly].remove(uni)
-	del code_glyph[uni]
-	gl=font[gly]
-	lu=list()
-	if len(glyph_codes[gly])<1:
-		if gl.unicode==uni:
-			gl.unicode=-1
-			return
-		gl.unicode=-1
-		if gl.altuni!=None:
-			lu=list()
-			for alt in gl.altuni:
-				if alt[1] > 0:
-					lu.append(alt)
-	else:
-		gl.unicode=glyph_codes[gly][0]
-		lu=list()
-		if gl.altuni!=None:
-			lu=list()
-			for alt in gl.altuni:
-				if alt[1] > 0:
-					lu.append(alt)
-		for u1 in glyph_codes[gly][1:]:
-			lu.append((u1, -1, 0))
-	if len(lu) > 0:
-		gl.altuni = tuple(lu)
-	else:
-		gl.altuni = None
-
-def adduni(gly, uni):
-	glyph_codes[gly].append(uni)
-	code_glyph[uni]=gly
-	if font[gly].unicode<0:
-		font[gly].unicode=uni
-	else:
-		lu=list()
-		if font[gly].altuni != None:
-			for alt in font[gly].altuni:
-				lu.append(alt)
-		lu.append((uni, -1, 0))
-		font[gly].altuni = tuple(lu)
-
-def stlookups():
-	lantgs=getlklan()
-	if ('hani', ('dflt',)) not in lantgs:
-		print('Add hani lantag')
-		lantgs.append(('hani', ('dflt',)))
-	font.addLookup('stchar', 'gsub_single', (), (("ccmp", tuple(lantgs)), ))
-	font.addLookup('stchar1', 'gsub_single', (), ())
-	font.addLookup('stchar2', 'gsub_single', (), ())
-	font.addLookup('stchar3', 'gsub_single', (), ())
-	font.addLookup('stchar4', 'gsub_single', (), ())
-	font.addLookupSubtable('stchar', 'sttab')
-	font.addLookupSubtable('stchar1', 'sttab1')
-	font.addLookupSubtable('stchar2', 'sttab2')
-	font.addLookupSubtable('stchar3', 'sttab3')
-	font.addLookupSubtable('stchar4', 'sttab4')
-	sgdic=dict()
-	with open(os.path.join(pydir, 'datas/stoneo.dt'), 'r', encoding = 'utf-8') as f:
+def getstdic():
+	newdic=dict()
+	with open(os.path.join(pydir, 'datas/stoneo.dt'),'r',encoding='utf-8') as f:
 		for line in f.readlines():
 			litm=line.split('#')[0].strip()
 			if '-' not in litm: continue
 			s, t=litm.split(' ')[0].split('-')
 			s, t=s.strip(), t.strip()
-			if s and t and s != t and ord(t) in code_glyph and ord(s) in code_glyph: sgdic[s]=t
-	for s, t in list(sgdic.items()):
-		if t in sgdic: sgdic[s]=sgdic[t]
-	for chs in sgdic.keys():
-			gnsc = code_glyph[ord(chs)]
-			gntc = code_glyph[ord(sgdic[chs])]
-			if gntc != gnsc:
-				font[gnsc].addPosSub('sttab', gntc)
-	font.addLookup('stdict', 'gsub_contextchain', (), (("ccmp", tuple(lantgs)), ))
-	with open(os.path.join(pydir, 'datas/stonem.dt'),'r',encoding = 'utf-8') as f:
-		sig1, sig2, sig3, sig4=set(), set(), set(), set()
-		ltc=dict()
-		i=1
-		linesrv=f.readlines()
-		linesrv.reverse()
-		for line in linesrv:
+			if s and t and s!=t:
+				newdic[s]=t
+	for s, t in list(newdic.items()):
+		if t in newdic: newdic[s]=newdic[t]
+	newlst=list()
+	with open(os.path.join(pydir, 'datas/stonem.dt'),'r',encoding='utf-8') as f:
+		for line in f.readlines():
 			litm=line.split('#')[0].strip()
 			if '-' not in litm: continue
+			dic1=dict()
 			ls=litm.strip().split(' ')
 			s, t=ls[0].split('-')
-			dics=ls[1:]
-			sg=code_glyph[ord(s)]
-			tg=code_glyph[ord(t)]
-			if sg!=tg and tg not in ltc:
-				if sg not in sig1:
-					sig1.add(sg)
-					font[sg].addPosSub('sttab1', tg)
-					ltc[tg]='stchar1'
-				elif sg not in sig2:
-					sig2.add(sg)
-					font[sg].addPosSub('sttab2', tg)
-					ltc[tg]='stchar2'
-				elif sg not in sig3:
-					sig3.add(sg)
-					font[sg].addPosSub('sttab3', tg)
-					ltc[tg]='stchar3'
-				elif sg not in sig4:
-					sig4.add(sg)
-					font[sg].addPosSub('sttab4', tg)
-					ltc[tg]='stchar4'
-			mt=list()
-			chat=-1
-			for strs in dics:
-				lw=list()
-				if len(strs)==1 and strs[0]==s:
-					chat=dics.index(strs)
-				for ch in strs:
-					codch=ord(ch)
-					if codch in code_glyph:
-						if code_glyph[codch] not in lw:
-							lw.append(code_glyph[codch])
-						else:
-							print('Skip', ch)
-				if len(lw)>0:
-					lw1=f'[{" ".join(lw)}]'
-					mt.append(lw1)
-				else:
-					raise
-			if not (s and t) or chat<0:
-				raise RuntimeError(line)
-			sb=str()
-			lkp=''
-			if tg in ltc:
-				lkp=f' @<{ltc[tg]}>'
-			noch=True
-			for m1 in mt:
-				if mt.index(m1)==chat and noch:
-					sb+='| '+m1+f'{lkp} | '
-					noch=False
-				else:
-					sb+=m1+f' '
-			font.addContextualSubtable(
-				lookup='stdict',
-				subtable='ldict'+str(i),
-				type='coverage',
-				rule=sb)
-			i+=1
+			dic1['s'], dic1['t']=s, t
+			dic1['p']=ls[1:]
+			newlst.append(dic1)
+	return newdic, newlst
 
-def stname():
-	sfntnames=list(font.sfnt_names)
-	sfntnames2=list()
-	for nt in sfntnames:
-		nn=list(nt)
-		nn[2]=nn[2].replace('Classic', 'T').replace('Old', 'T').replace('ODict', 'T').replace(scname, tcname).replace('传承体', '繁體').replace('傳承體', '繁體').replace('旧印体', '繁體').replace('舊印體', '繁體').replace('旧典体', '繁體').replace('舊典體', '繁體')
-		nt=tuple(nn)
-		sfntnames2.append(nt)
-	font.sfnt_names=tuple(sfntnames2)
+def stlookups(font):
+	cmap=font.getBestCmap()
+	chrdic, phrdic=getstdic()
+	for s, t in list(chrdic.items()):
+		if ord(s) not in cmap and ord(t) in cmap:
+			setcg(font['cmap'], ord(s), cmap[ord(t)])
 
-def fontinf():
-	font.os2_vendor='GWF '
-	font.sfntRevision = float(fontver)
-	nameen, nametc, namesc=str(), str(), str()
+	cmap=font.getBestCmap()
+	glod=font.getGlyphOrder()
+	stmul=otTables.Lookup()
+	stsig=otTables.Lookup()
+	stsig1=otTables.Lookup()
+	stsig2=otTables.Lookup()
+	stsig3=otTables.Lookup()
+	stlkups=[stmul, stsig, stsig1, stsig2, stsig3]
+	sgtb, sgtb1, sgtb2, sgtb3=dict(), dict(), dict(), dict()
+	for lk in stlkups[1:]:
+		lk.LookupType=1
+		lk.LookupFlag=0
+	sgsb=otTables.SingleSubst()
+	sgsb1=otTables.SingleSubst()
+	sgsb2=otTables.SingleSubst()
+	sgsb3=otTables.SingleSubst()
+	stsig.SubTable=[sgsb]
+	stsig1.SubTable=[sgsb1]
+	stsig2.SubTable=[sgsb2]
+	stsig3.SubTable=[sgsb3]
+	stmul.SubTable=list()
+	stmul.LookupType=6
+	stmul.LookupFlag=0
+	ltc=dict()
+	for phdc in phrdic:
+		s, t=phdc['s'], phdc['t']
+		dics=phdc['p']
+		sg=cmap[ord(s)]
+		tg=cmap[ord(t)]
+		i=dics.index(s)
+		assert i>-1
+		bkcov=dics[0:i]
+		bkcov.reverse()
+		lahcov=dics[i+1:]
+		if sg!=tg and tg not in ltc:
+			if sg not in sgtb1:
+				sgtb1[sg]=tg
+				ltc[tg]=2
+			elif sg not in sgtb2:
+				sgtb2[sg]=tg
+				ltc[tg]=3
+			elif sg not in sgtb3:
+				sgtb3[sg]=tg
+				ltc[tg]=4
+			else:
+				raise
+		bklst=list()
+		for strs in bkcov:
+			cvobjbk=otTables.Coverage()
+			cvobjbk.glyphs=list(set([cmap[ord(ch)] for ch in strs]))
+			assert len(cvobjbk.glyphs)>0, strs
+			cvobjbk.glyphs=list(sorted([g for g in cvobjbk.glyphs], key=lambda g:glod.index(g)))
+			bklst.append(cvobjbk)
+		ahlst=list()
+		for strs in lahcov:
+			cvobjah=otTables.Coverage()
+			cvobjah.glyphs=list(set([cmap[ord(ch)] for ch in strs]))
+			assert len(cvobjah.glyphs)>0, strs
+			cvobjah.glyphs=list(sorted([g for g in cvobjah.glyphs], key=lambda g:glod.index(g)))
+			ahlst.append(cvobjah)
+		cvobjip=otTables.Coverage()
+		cvobjip.glyphs=[cmap[ord(s)]]
+		mulsb=otTables.ChainContextSubst()
+		mulsb.Format=3
+		mulsb.BacktrackCoverage=bklst
+		mulsb.InputCoverage=[cvobjip]
+		mulsb.LookAheadCoverage=ahlst
+		if sg!=tg:
+			sblrd=otTables.SubstLookupRecord()
+			sblrd.SequenceIndex=0
+			sblrd.LookupListIndex=ltc[tg]
+			mulsb.SubstLookupRecord=[sblrd]
+		stmul.SubTable.append(mulsb)
+	sgsb1.mapping=sgtb1
+	sgsb2.mapping=sgtb2
+	sgsb3.mapping=sgtb3
+	for s, t in list(chrdic.items()):
+		if ord(s) in cmap and ord(t) in cmap and cmap[ord(s)]!=cmap[ord(t)]:
+			sgtb[cmap[ord(s)]]=cmap[ord(t)]
+	sgsb.mapping=sgtb
+	for lkp in font["GSUB"].table.LookupList.Lookup:
+		for st in lkp.SubTable:
+			if st.LookupType in (5, 6) and hasattr(st, 'SubstLookupRecord'):
+				for sbrcd in st.SubstLookupRecord:
+					sbrcd.LookupListIndex+=len(stlkups)
+	for ft in font["GSUB"].table.FeatureList.FeatureRecord:
+		ft.Feature.LookupListIndex=[i+len(stlkups) for i in ft.Feature.LookupListIndex]
+	font["GSUB"].table.LookupList.Lookup=stlkups+font["GSUB"].table.LookupList.Lookup
+	stft=otTables.FeatureRecord()
+	stft.Feature=otTables.Feature()
+	stft.FeatureTag='ccmp'
+	stft.Feature.LookupListIndex=[0, 1]
+	font["GSUB"].table.FeatureList.FeatureRecord.insert(0, stft)
+	for sr in font["GSUB"].table.ScriptList.ScriptRecord:
+		sr.Script.DefaultLangSys.FeatureIndex=[i+1 for i in sr.Script.DefaultLangSys.FeatureIndex]
+		sr.Script.DefaultLangSys.FeatureIndex.insert(0, 0)
+		for lsr in sr.Script.LangSysRecord:
+			lsr.LangSys.FeatureIndex=[i+1 for i in lsr.LangSys.FeatureIndex]
+			lsr.LangSys.FeatureIndex.insert(0, 0)
+
+
+def fontinf(font, style):
+	nameen, nametc, namesc, nameja=str(), str(), str(), str()
 	if style=='1':
 		nameen=fontname+' Old'
 		nametc=tcname+' 舊印體'
 		namesc=scname+' 旧印体'
+		nameja=janame+' Old'
 	elif style=='2':
 		nameen=fontname+' Classic'
 		nametc=tcname+' 傳承體'
 		namesc=scname+' 传承体'
+		nameja=janame+' Classic'
 	elif style=='3':
 		nameen=fontname+' ODict'
 		nametc=tcname+' 舊典體'
 		namesc=scname+' 旧典体'
+		nameja=janame+' ODict'
+	elif style=='4':
+		nameen=fontname+' T'
+		nametc=tcname+' 繁體'
+		namesc=scname+' 繁体'
+		nameja=janame+' T'
 
-	newname=list()
-	newname+=[('English (US)', 'Family', nameen), ('English (US)', 'Fullname', nameen)]
-	for lang in ('English (US)', 'Chinese (Taiwan)', 'Chinese (Hong Kong)', 'Chinese (Macau)', 'Chinese (PRC)', 'Chinese (Singapore)'):
-		newname+=[
-			(lang, 'Copyright', 'Copyright(c) '+fontname+', 2022-2024. You must accept "https://opensource.org/licenses/IPA/" to use this product.'), 
-			(lang, 'SubFamily', 'Regular'), 
-			(lang, 'UniqueID', nameen+' Version '+fontver), 
-			(lang, 'Version', 'Version '+fontver), 
-			(lang, 'PostScriptName', nameen.replace(' ', '')), 
-			(lang, 'License', 'https://opensource.org/licenses/IPA/'), 
-			(lang, 'License URL', 'https://opensource.org/licenses/IPA/'), 
-			(lang, 'Vendor URL', vendorURL), 
-		]
-	for lang in ('Chinese (Taiwan)', 'Chinese (Hong Kong)', 'Chinese (Macau)'):
-		newname+=[(lang, 'Family', nametc), (lang, 'Fullname', nametc)]
-	for lang in ('Chinese (PRC)', 'Chinese (Singapore)'):
-		newname+=[(lang, 'Family', namesc), (lang, 'Fullname', namesc)]
-	font.sfnt_names=tuple(newname)
+	subfamily='Regular'
+	psName=nameen.replace(' ', '')
+	uniqID=nameen+' Version '+fontver
+	License=LicenseUrl='https://opensource.org/licenses/IPA/'
+	
+	newnane=newTable('name')
+	
+	for pe, li in ((0, 0), (1, 11), (2, 19), (25, 33)):
+		newnane.setName(Copyright, 0, 1, pe, li)
+		newnane.setName(subfamily, 2, 1, pe, li)
+		newnane.setName(uniqID, 3, 1, pe, li)
+		newnane.setName('Version '+fontver, 5, 1, pe, li)
+		newnane.setName(psName, 6, 1, pe, li)
+		newnane.setName(vendorURL, 11, 1, pe, li)
+		newnane.setName(License, 13, 1, pe, li)
+		newnane.setName(LicenseUrl, 14, 1, pe, li)
+		
+	newnane.setName(nameen, 1, 1, 0, 0)
+	newnane.setName(nameen, 4, 1, 0, 0)
+	newnane.setName(nameja, 1, 1, 1, 11)
+	newnane.setName(nameja, 4, 1, 1, 11)
+	newnane.setName(nametc, 1, 1, 2, 19)
+	newnane.setName(nametc, 4, 1, 2, 19)
+	newnane.setName(namesc, 1, 1, 25, 33)
+	newnane.setName(namesc, 4, 1, 25, 33)
+	
+	for lanid in (1033, 1028, 3076, 5124, 2052, 4100, 1041):
+		newnane.setName(Copyright, 0, 3, 1, lanid)
+		newnane.setName(subfamily, 2, 3, 1, lanid)
+		newnane.setName(uniqID, 3, 3, 1, lanid)
+		newnane.setName('Version '+fontver, 5, 3, 1, lanid)
+		newnane.setName(psName, 6, 3, 1, lanid)
+		newnane.setName(vendorURL, 11, 3, 1, lanid)
+		newnane.setName(License, 13, 3, 1, lanid)
+		newnane.setName(LicenseUrl, 14, 3, 1, lanid)
 
-def getlklan():
-	lans=list()
-	for lk in font.gsub_lookups:
-		for lan in font.getLookupInfo(lk)[2][0][1]:
-			if lan not in lans: lans.append(lan)
-	return lans
+	newnane.setName(nameen, 1, 3, 1, 1033)
+	newnane.setName(nameen, 4, 3, 1, 1033)
+	newnane.setName(nameja, 1, 3, 1, 1041)
+	newnane.setName(nameja, 4, 3, 1, 1041)
+	for lanid in (1028, 3076, 5124):
+		newnane.setName(nametc, 1, 3, 1, lanid)
+		newnane.setName(nametc, 4, 3, 1, lanid)
+	for lanid in (2052, 4100):
+		newnane.setName(namesc, 1, 3, 1, lanid)
+		newnane.setName(namesc, 4, 3, 1, lanid)
+	return newnane
+
+def prouv(font, ispr):
+	cmap=font.getBestCmap()
+	for table in font["cmap"].tables:
+		if table.format==14:
+			for vsl in table.uvsDict.keys():
+				newl=list()
+				for cg in table.uvsDict[vsl]:
+					if cg[1]==None and ispr:
+						newl.append((cg[0], cmap[cg[0]]))
+					elif cg[0] in cmap and cg[1]==cmap[cg[0]] and not ispr:
+						newl.append((cg[0], None))
+					else:
+						newl.append((cg[0], cg[1]))
+				table.uvsDict[vsl]=newl
+def getuvs(fonto):
+	nuv=dict()
+	for table in fonto['cmap'].tables:
+		if table.format==14:
+			for vsl in table.uvsDict.keys():
+				for cg in table.uvsDict[vsl]:
+					if cg[0] not in nuv:
+						nuv[cg[0]]=dict()
+					if cg[1]==None:
+						raise
+					else:
+						nuv[cg[0]][vsl]=cg[1]
+	return nuv
+
+def setcg(cmap, code, glyf):
+	for table in cmap.tables:
+		if (table.format==4 and code<=0xFFFF) or table.format==12 or code in table.cmap:
+			table.cmap[code]=glyf
+
+def addvariants(font):
+	print('Processing font variants...')
+	with open(os.path.join(pydir, 'datas/Variants.txt'),'r',encoding = 'utf-8') as f:
+		cmap=font.getBestCmap()
+		for line in f.readlines():
+			litm=line.split('#')[0].strip()
+			if '\t' not in litm: continue
+			vari=litm.strip().split('\t')
+			gtgly=str()
+			for ch1 in vari:
+				if ord(ch1) in cmap:
+					gtgly=cmap[ord(ch1)]
+					break
+			if gtgly:
+				for ch1 in vari:
+					if ord(ch1) not in cmap:
+						# print(ch1)
+						setcg(font['cmap'], ord(ch1), gtgly)
+
+def savefont(outfile, font, IsT=False):
+	outfont=TTFont(inf)
+	outfont['OS/2'].achVendID=VendID
+	outfont['head'].fontRevision=float(fontver)
+
+	outfont['name']=font['name']
+	outfont['cmap']=font['cmap']
+	if IsT:
+		outfont['GSUB']=font['GSUB']
+	outfont.save(outfile)
 
 print('====Start Build HuayingMincho Fonts====\n')
 inf, outf, style=str(), str(), str()
@@ -266,81 +290,67 @@ else:
 	sys.exit()
 
 print('Loading font...')
-font = fontforge.open(inf)
-if font.is_cid:
-	print('Warning: this is a CID font, we need to FLATTEN it!')
-	font.cidFlatten()
-font.reencode("unicodefull")
-tv=dict()
-ltb=list()
-mvar=dict()
-vtb=list()
+font = TTFont(inf)
+prouv(font, True)
+
 exch=set()
-mulch=list()
-with open(os.path.join(pydir, 'datas/mulcodechar.txt'), 'r', encoding='utf-8') as f:
-	for line in f.readlines():
-		litm=line.split('#')[0].strip()
-		if '-' not in litm: continue
-		a=litm.split(' ')[0].split('-')
-		if style=='2': exch.add(a[0].strip())
-		mulch.append((a[0].strip(), a[1].strip()))
+uvss=getuvs(font)
+
+cmap=font.getBestCmap()
+newmap=dict()
+
+if style=='2':
+	with open(os.path.join(pydir, 'datas/mulcodechar.txt'), 'r', encoding='utf-8') as f:
+		for line in f.readlines():
+			litm=line.split('#')[0].strip()
+			if '-' not in litm: continue
+			a=litm.split(' ')[0].split('-')
+			exch.add(a[0])
+			if ord(a[1]) in cmap:
+				newmap[ord(a[0])]=cmap[ord(a[1])]
 with open(os.path.join(pydir, 'datas/mulcodevar.txt'), 'r', encoding='utf-8') as f:
 	for line in f.readlines():
 		litm=line.split('#')[0].strip()
 		if '\t' not in litm: continue
 		a=litm.split('\t')
 		if style=='3' and a[0]=='即': continue
-		tv[ord(a[1])]=int(a[3].split(' ')[1].strip(), 16)
-		mvar[ord(a[1])]=(int(a[2].split(' ')[1].strip(), 16), ord(a[0]))
+		
+		newmap[ord(a[0])]=uvss[ord(a[1])][int(a[2].split(' ')[1].strip(), 16)]
+		newmap[ord(a[1])]=uvss[ord(a[1])][int(a[3].split(' ')[1].strip(), 16)]
 		exch.add(a[0])
+
 with open(os.path.join(pydir, 'datas/uvs-get-MARK-0'+style+'.txt'), 'r', encoding='utf-8') as f:
 	for line in f.readlines():
 		litm=line.split('#')[0].strip()
 		if litm.endswith('X'):
 			a=litm.split(' ')
 			if a[0] not in exch:
-				tv[ord(a[0])]=int(a[3].strip('X').strip(), 16)
+				newmap[ord(a[0])]=uvss[ord(a[0])][int(a[3].strip('X').strip(), 16)]
 
-for gls in font.glyphs():
-	if gls.altuni!=None:
-		for alt in gls.altuni:
-			if alt[1]>0:
-				if alt[0] in mvar and alt[1]==mvar[alt[0]][0]:
-					vtb.append((gls.glyphname, mvar[alt[0]][1]))
-				if alt[0] in tv and tv[alt[0]]==alt[1]:
-					ltb.append((gls.glyphname, alt[0]))
 print('Moving codes...')
 
-code_glyph = dict()
-glyph_codes=dict()
-getallcodesname(font, code_glyph, glyph_codes)
-
-for v1 in vtb:
-	addglyuni(v1[0], v1[1])
-
-for t1 in ltb:
-	unimvtogly(t1[1], t1[0])
-if style=='2':
-	print('Checking multicode...')
-	for chd in mulch:
-		mvcodetocode(ord(chd[0]), ord(chd[1]))
+for c in newmap.keys():
+	setcg(font['cmap'], c, newmap[c])
 
 print('Checking variants...')
-addvariants()
+addvariants(font)
 
+prouv(font, False)
 print('Setting font info...')
-fontinf()
+font['name']=fontinf(font, style)
 print('Generating font(s)...')
-gflags=('opentype', 'omit-instructions',)
+
 if len(sys.argv)>4 and sys.argv[4].lower()=='t' and os.path.isdir(outf):
-	defn=[fontname+'Old', fontname+'Classic', fontname+'ODict']
-	oft=os.path.join(outf, defn[int(style)-1]+'.ttf')
-	oftst=os.path.join(outf, fontname+'T.ttf')
-	font.generate(oft)
+	outname=os.path.join(outf, font["name"].getDebugName(6)+'.ttf')
+	savefont(outname, font)
+
+	font['name']=fontinf(font, '4')
 	print('Convert to TC...')
-	stlookups()
-	stname()
-	font.generate(oftst)
+	stlookups(font)
+	outname=os.path.join(outf, font["name"].getDebugName(6)+'.ttf')
+	savefont(outname, font, True)
+
 else:
-	font.generate(outf)
+	savefont(outf, font)
+
 print('Finished!')
