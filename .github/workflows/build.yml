@@ -4,6 +4,9 @@ name: Build
 on:
   workflow_dispatch
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,19 +17,13 @@ jobs:
 
     - name: Build
       run: sh build.sh
-    - uses: actions/upload-artifact@v4
-      with:
-        name: HuayingMincho
-        path: "*.tt*"
 
     - name: Upload to release
       uses: ncipollo/release-action@v1
       with:
         token: "${{ secrets.GITHUB_TOKEN }}"
         tag: "test-build-01"
-        artifacts: |
-            *.tt*
-            *.7z
+        artifacts: "*.7z"
         allowUpdates: true
         prerelease: true
         draft: true

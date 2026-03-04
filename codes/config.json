@@ -1,0 +1,37 @@
+{
+    "Name": "HuayingMincho",
+    "Version": "1.017",
+    "ID": "GUIW",
+    "VURL": "https://github.com/GuiWonder/HuayingMincho",
+    "Copyright": "Copyright(c) {name}, 2022-{year}. You must accept \"https://opensource.org/licenses/IPA/\" to use this product.",
+    "Designer": "GuiWonder",
+    "Discript": "",
+    "LicenseUrl": "https://opensource.org/licenses/IPA/",
+    "TC":
+        {
+            "Name": "華英明朝",
+            "Old": "舊印體",
+            "Classic": "傳承體",
+            "ODict": "舊典體",
+            "T": "繁體",
+            "Format": "格式"
+        },
+    "SC":
+        {
+            "Name": "华英明朝",
+            "Old": "旧印体",
+            "Classic": "传承体",
+            "ODict": "旧典体",
+            "T": "繁体",
+            "Format": "格式"
+        },
+    "JA":
+        {
+            "Name": "華英明朝",
+            "Old": "Old",
+            "Classic": "Classic",
+            "ODict": "ODict",
+            "T": "T",
+            "Format": "形式"
+        }
+}

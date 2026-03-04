@@ -20,10 +20,8 @@
 * 簡體字的製作  
 本字型將簡化字以「新字」對待，不使用簡化字源頭上的訛字、俗字、古字等字形。簡體字部分在[霞鶩新致宋](https://github.com/lxgw/LxgwNeoZhiSong)基礎上製作，製作中參考了簡體對應的繁體字以及中國大陸早期（簡繁過度時期）使用過的舊字形簡化字。
 * 可透過異體選擇符輸出 [IVD_Charts_Moji_Joho](https://unicode.org/ivd/data/2017-12-12/IVD_Charts_Moji_Joho.pdf) 中的字形。  
-
 ## 下載字型
 1. 可從本站 [Releases](../../releases) 頁面下載字型。
-2. 可從[騰訊微雲](https://share.weiyun.com/VEoOc5xK)下載 HuayingMincho 系列字型。
 ## 授權
 華英明朝字型是基於 [IPAmj明朝](https://moji.or.jp/mojikiban/font/)的衍生字型，遵循 [IPA Font License Agreement v1.0](./LICENSE.txt) 協議。
 ## 鳴謝
