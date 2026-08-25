@@ -33,4 +33,4 @@
 * [IVD 2017-12-12 Moji_Joho](https://unicode.org/ivd/data/2017-12-12/IVD_Charts_Moji_Joho.pdf)
 * [GlyphWiki](https://glyphwiki.org/)
 ## 關於作者
-- **Email：** chunfengfly@outlook.com
+https://github.com/GuiWonder
